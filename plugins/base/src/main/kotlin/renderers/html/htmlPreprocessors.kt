@@ -8,6 +8,8 @@ import kotlinx.html.id
 import kotlinx.html.table
 import kotlinx.html.tbody
 import org.jetbrains.dokka.DokkaConfiguration
+import org.jetbrains.dokka.base.DokkaBase
+import org.jetbrains.dokka.base.DokkaBaseConfiguration
 import org.jetbrains.dokka.base.renderers.sourceSets
 import org.jetbrains.dokka.links.DRI
 import org.jetbrains.dokka.model.DEnum
@@ -15,6 +17,7 @@ import org.jetbrains.dokka.model.DEnumEntry
 import org.jetbrains.dokka.model.withDescendants
 import org.jetbrains.dokka.pages.*
 import org.jetbrains.dokka.plugability.DokkaContext
+import org.jetbrains.dokka.plugability.configuration
 import org.jetbrains.dokka.transformers.pages.PageTransformer
 
 object NavigationPageInstaller : PageTransformer {
@@ -67,14 +70,16 @@ object NavigationPageInstaller : PageTransformer {
         }.sortedBy { it.name.toLowerCase() }
 }
 
-class CustomResourceInstaller(val dokkaConfiguration: DokkaConfiguration) : PageTransformer {
-    private val customAssets = dokkaConfiguration.customAssets.map {
-        RendererSpecificResourcePage("images/${it.name}", emptyList(), RenderingStrategy.Copy(it.absolutePath))
-    }
+class CustomResourceInstaller(val dokkaContext: DokkaContext) : PageTransformer {
+    private val configuration = configuration<DokkaBase, DokkaBaseConfiguration>(dokkaContext)
 
-    private val customStylesheets = dokkaConfiguration.customStyleSheets.map {
+    private val customAssets = configuration?.customAssets?.map {
+        RendererSpecificResourcePage("images/${it.name}", emptyList(), RenderingStrategy.Copy(it.absolutePath))
+    }.orEmpty()
+
+    private val customStylesheets = configuration?.customStyleSheets?.map {
         RendererSpecificResourcePage("styles/${it.name}", emptyList(), RenderingStrategy.Copy(it.absolutePath))
-    }
+    }.orEmpty()
 
     override fun invoke(input: RootPageNode): RootPageNode {
         val customResourcesPaths = (customAssets + customStylesheets).map { it.name }.toSet()

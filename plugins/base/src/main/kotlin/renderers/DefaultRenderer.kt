@@ -6,6 +6,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.dokka.DokkaException
 import org.jetbrains.dokka.base.DokkaBase
+import org.jetbrains.dokka.base.renderers.HtmlFileExtensions.imageExtensions
 import org.jetbrains.dokka.base.resolvers.local.LocationProvider
 import org.jetbrains.dokka.base.resolvers.local.resolveOrThrow
 import org.jetbrains.dokka.model.DisplaySourceSet
@@ -224,8 +225,3 @@ internal typealias SerializedBeforeAndAfter = Pair<String, String>
 internal typealias InstanceWithSource = Pair<ContentDivergentInstance, DisplaySourceSet>
 
 fun ContentPage.sourceSets() = this.content.sourceSets
-
-fun ContentEmbeddedResource.isImage(): Boolean {
-    val imageExtensions = setOf("png", "jpg", "jpeg", "gif", "bmp", "tif", "webp", "svg")
-    return File(address).extension.toLowerCase() in imageExtensions
-}

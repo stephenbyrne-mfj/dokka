@@ -1,6 +1,10 @@
 package org.jetbrains.dokka.plugability
 
+import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
+import com.fasterxml.jackson.dataformat.xml.XmlMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import org.jetbrains.dokka.DokkaConfiguration
+import org.jetbrains.dokka.PluginConfigurationImpl
 import org.jetbrains.dokka.utilities.parseJson
 import org.jetbrains.dokka.utilities.toJsonString
 import kotlin.properties.ReadOnlyProperty
@@ -49,16 +53,19 @@ interface WithUnsafeExtensionSuppression {
 }
 
 interface Configurable {
-    val pluginsConfiguration: Map<String, String>
+    val pluginsConfiguration: MutableList<DokkaConfiguration.PluginConfiguration>
 }
 
 interface ConfigurableBlock
 
 inline fun <reified P : DokkaPlugin, reified T : ConfigurableBlock> Configurable.pluginConfiguration(block: T.() -> Unit) {
     val instance = T::class.createInstance().apply(block)
-
-    val mutablePluginsConfiguration = pluginsConfiguration as MutableMap<String, String>
-    mutablePluginsConfiguration[P::class.qualifiedName!!] = toJsonString(instance)
+    val pluginConfiguration = PluginConfigurationImpl(
+        fqPluginName = P::class.qualifiedName!!,
+        serializedType = DokkaConfiguration.SerializedType.JSON,
+        values = toJsonString(instance)
+    )
+    pluginsConfiguration.add(pluginConfiguration)
 }
 
 inline fun <reified P : DokkaPlugin, reified E : Any> P.query(extension: P.() -> ExtensionPoint<E>): List<E> =
@@ -70,11 +77,11 @@ inline fun <reified P : DokkaPlugin, reified E : Any> P.querySingle(extension: P
 fun throwIllegalQuery(): Nothing =
     throw IllegalStateException("Querying about plugins is only possible with dokka context initialised")
 
-inline fun <reified T : DokkaPlugin, reified R : ConfigurableBlock> configuration(context: DokkaContext): ReadOnlyProperty<Any?, R> {
-    return ReadOnlyProperty { _, _ ->
-        val configuration = context.configuration.pluginsConfiguration[
-                T::class.qualifiedName ?: throw AssertionError("Plugin must be named class")
-        ]
-        parseJson(checkNotNull(configuration))
-    }
-}
+inline fun <reified T : DokkaPlugin, reified R : ConfigurableBlock> configuration(context: DokkaContext): R? =
+    context.configuration.pluginsConfiguration.firstOrNull { it.fqPluginName == T::class.qualifiedName }
+        ?.let { configuration ->
+            when (configuration.serializedType) {
+                DokkaConfiguration.SerializedType.JSON -> parseJson(configuration.values)
+                else -> XmlMapper(JacksonXmlModule().apply { setDefaultUseWrapper(true) }).readValue<R>(configuration.values)
+            }
+        }

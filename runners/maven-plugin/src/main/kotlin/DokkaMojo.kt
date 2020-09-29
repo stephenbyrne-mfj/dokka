@@ -12,6 +12,7 @@ import org.apache.maven.project.MavenProjectHelper
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils
 import org.codehaus.plexus.archiver.Archiver
 import org.codehaus.plexus.archiver.jar.JarArchiver
+import org.codehaus.plexus.util.xml.Xpp3Dom
 import org.eclipse.aether.DefaultRepositorySystemSession
 import org.eclipse.aether.RepositorySystem
 import org.eclipse.aether.RepositorySystemSession
@@ -162,12 +163,6 @@ abstract class AbstractDokkaMojo(private val defaultDokkaPlugins: List<Dependenc
     var dokkaPlugins: List<Dependency> = emptyList()
         get() = field + defaultDokkaPlugins
 
-    @Parameter
-    var customAssets = DokkaDefaults.customAssets
-
-    @Parameter
-    var customStylesheets = DokkaDefaults.customStylesheets
-
     protected abstract fun getOutDir(): String
 
     override fun execute() {
@@ -230,6 +225,16 @@ abstract class AbstractDokkaMojo(private val defaultDokkaPlugins: List<Dependenc
 
         val logger = MavenDokkaLogger(log)
 
+        val pluginsConfiguration =
+            (mavenProject?.getPlugin("org.jetbrains.dokka:dokka-maven-plugin")?.configuration as? Xpp3Dom)
+                ?.getChild("pluginsConfiguration")?.children?.map {
+                    PluginConfigurationImpl(
+                        it.name,
+                        DokkaConfiguration.SerializedType.XML,
+                        it.toString()
+                    )
+                }.orEmpty()
+
         val configuration = DokkaConfigurationImpl(
             moduleName = moduleName,
             outputDir = File(getOutDir()),
@@ -239,11 +244,9 @@ abstract class AbstractDokkaMojo(private val defaultDokkaPlugins: List<Dependenc
             pluginsClasspath = getArtifactByAether("org.jetbrains.dokka", "dokka-base", dokkaVersion) +
                     dokkaPlugins.map { getArtifactByAether(it.groupId, it.artifactId, it.version ?: dokkaVersion) }
                         .flatten(),
-            pluginsConfiguration = mutableMapOf(), //TODO implement as it is in Gradle
+            pluginsConfiguration = pluginsConfiguration.toMutableList(),
             modules = emptyList(),
             failOnWarning = failOnWarning,
-            customAssets = customAssets,
-            customStyleSheets = customStylesheets
         )
 
         val gen = DokkaGenerator(configuration, logger)

@@ -14,17 +14,15 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.kotlin.dsl.listProperty
 import org.gradle.kotlin.dsl.mapProperty
-import org.jetbrains.dokka.DokkaBootstrap
-import org.jetbrains.dokka.DokkaConfigurationImpl
-import org.jetbrains.dokka.DokkaDefaults
-import org.jetbrains.dokka.toJsonString
+import org.jetbrains.dokka.*
+import org.jetbrains.dokka.plugability.Configurable
 import java.io.File
 import java.util.function.BiConsumer
 import kotlin.reflect.KClass
 
 abstract class AbstractDokkaTask(
     private val bootstrapClass: KClass<out DokkaBootstrap> = DokkaBootstrap::class
-) : DefaultTask() {
+) : DefaultTask(), Configurable {
 
     @Input
     val moduleName: Property<String> = project.objects.safeProperty<String>()
@@ -50,14 +48,7 @@ abstract class AbstractDokkaTask(
     val offlineMode: Property<Boolean> = project.objects.safeProperty<Boolean>()
         .safeConvention(DokkaDefaults.offlineMode)
 
-    @Input
-    val pluginsConfiguration: MapProperty<String, String> = project.objects.mapProperty()
-
-    @Input
-    val customStyleSheets: ListProperty<File> = project.objects.listProperty()
-
-    @Input
-    val customAssets: ListProperty<File> = project.objects.listProperty()
+    override val pluginsConfiguration: MutableList<DokkaConfiguration.PluginConfiguration> = mutableListOf()
 
     @Classpath
     val plugins: Configuration = project.maybeCreateDokkaPluginConfiguration(name)

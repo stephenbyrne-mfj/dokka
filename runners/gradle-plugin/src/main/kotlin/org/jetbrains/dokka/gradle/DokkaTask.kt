@@ -4,10 +4,7 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
-import org.jetbrains.dokka.DokkaBootstrapImpl
-import org.jetbrains.dokka.DokkaConfigurationImpl
-import org.jetbrains.dokka.DokkaDefaults
-import org.jetbrains.dokka.build
+import org.jetbrains.dokka.*
 
 abstract class DokkaTask : AbstractDokkaTask(DokkaBootstrapImpl::class) {
 
@@ -44,10 +41,8 @@ abstract class DokkaTask : AbstractDokkaTask(DokkaBootstrapImpl::class) {
             offlineMode = offlineMode.getSafe(),
             failOnWarning = failOnWarning.getSafe(),
             sourceSets = unsuppressedSourceSets.build(),
-            pluginsConfiguration = pluginsConfiguration.getSafe(),
-            pluginsClasspath = plugins.resolve().toList(),
-            customAssets = customAssets.getSafe() ?: DokkaDefaults.customAssets,
-            customStyleSheets = customStyleSheets.getSafe() ?: DokkaDefaults.customStylesheets
+            pluginsConfiguration = pluginsConfiguration.mapNotNull { it as? PluginConfigurationImpl }.toMutableList(),
+            pluginsClasspath = plugins.resolve().toList()
         )
     }
 }

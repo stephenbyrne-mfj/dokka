@@ -46,7 +46,7 @@ class GlobalArguments(args: Array<String>) : DokkaConfiguration {
     override val pluginsConfiguration by parser.option(
         ArgTypePlugin,
         description = "Configuration for plugins in format fqPluginName=json^^fqPluginName=json..."
-    ).default(emptyMap())
+    ).default(DokkaDefaults.pluginsConfiguration as MutableList<DokkaConfiguration.PluginConfiguration>)
 
     override val pluginsClasspath by parser.option(
         ArgTypeFile,
@@ -63,16 +63,6 @@ class GlobalArguments(args: Array<String>) : DokkaConfiguration {
         ArgType.Boolean,
         "Throw an exception if the generation exited with warnings"
     ).default(DokkaDefaults.failOnWarning)
-
-    override val customStyleSheets by parser.option(
-        ArgTypeFile,
-        description = "Custom stylesheets to add to output files"
-    ).delimiter(";")
-
-    override val customAssets by parser.option(
-        ArgTypeFile,
-        description = "Custom assets to add to output files"
-    ).delimiter(";")
 
     val globalPackageOptions by parser.option(
         ArgType.String,
@@ -267,13 +257,22 @@ object ArgTypePlatform : ArgType<Platform>(true) {
         get() = "{ String that represents platform }"
 }
 
-object ArgTypePlugin : ArgType<Map<String, String>>(true) {
-    override fun convert(value: kotlin.String, name: kotlin.String): Map<kotlin.String, kotlin.String> =
+object ArgTypePlugin : ArgType<MutableList<DokkaConfiguration.PluginConfiguration>>(true) {
+    override fun convert(
+        value: kotlin.String,
+        name: kotlin.String
+    ): MutableList<DokkaConfiguration.PluginConfiguration> =
         value.split("^^").map {
             it.split("=").let {
                 it[0] to it[1]
             }
-        }.toMap()
+        }.toMap().entries.map { entry ->
+            PluginConfigurationImpl(
+                fqPluginName = entry.key,
+                serializedType = DokkaConfiguration.SerializedType.JSON,
+                values = entry.value
+            )
+        }.toMutableList()
 
     override val description: kotlin.String
         get() = "{ String fqName=json, remember to escape `\"` inside json }"

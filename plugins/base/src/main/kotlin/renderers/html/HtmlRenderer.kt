@@ -678,6 +678,7 @@ open class HtmlRenderer(
                         ) {
                             async = true
                         }
+                        it.isImage() -> link(href = page.root(it))
                         else -> unsafe { +it }
                     }
                 }
