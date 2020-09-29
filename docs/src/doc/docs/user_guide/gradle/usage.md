@@ -262,7 +262,7 @@ pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
 }
 ```
 
-Keep in mind, that this only works when using a buildscript since it is not possible to import plugin's class without it.
+Keep in mind, that this only works when using a buildscript (with the configured plugin on classpath) since it is not possible to import plugin's class without it.
 ## Android
 
 !!! important

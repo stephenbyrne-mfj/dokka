@@ -46,7 +46,7 @@ class GlobalArguments(args: Array<String>) : DokkaConfiguration {
     override val pluginsConfiguration by parser.option(
         ArgTypePlugin,
         description = "Configuration for plugins in format fqPluginName=json^^fqPluginName=json..."
-    ).default(DokkaDefaults.pluginsConfiguration as MutableList<DokkaConfiguration.PluginConfiguration>)
+    ).delimiter("^^")
 
     override val pluginsClasspath by parser.option(
         ArgTypeFile,
@@ -257,22 +257,19 @@ object ArgTypePlatform : ArgType<Platform>(true) {
         get() = "{ String that represents platform }"
 }
 
-object ArgTypePlugin : ArgType<MutableList<DokkaConfiguration.PluginConfiguration>>(true) {
+object ArgTypePlugin : ArgType<DokkaConfiguration.PluginConfiguration>(true) {
     override fun convert(
         value: kotlin.String,
         name: kotlin.String
-    ): MutableList<DokkaConfiguration.PluginConfiguration> =
-        value.split("^^").map {
-            it.split("=").let {
-                it[0] to it[1]
-            }
-        }.toMap().entries.map { entry ->
+    ): DokkaConfiguration.PluginConfiguration {
+        return value.split("=").let {
             PluginConfigurationImpl(
-                fqPluginName = entry.key,
+                fqPluginName = it[0],
                 serializedType = DokkaConfiguration.SerializedType.JSON,
-                values = entry.value
+                values = it[1]
             )
-        }.toMutableList()
+        }
+    }
 
     override val description: kotlin.String
         get() = "{ String fqName=json, remember to escape `\"` inside json }"

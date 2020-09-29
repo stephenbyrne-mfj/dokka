@@ -41,7 +41,7 @@ abstract class DokkaTask : AbstractDokkaTask(DokkaBootstrapImpl::class) {
             offlineMode = offlineMode.getSafe(),
             failOnWarning = failOnWarning.getSafe(),
             sourceSets = unsuppressedSourceSets.build(),
-            pluginsConfiguration = pluginsConfiguration.mapNotNull { it as? PluginConfigurationImpl }.toMutableList(),
+            pluginsConfiguration = pluginsConfiguration.mapNotNull { it as? PluginConfigurationImpl },
             pluginsClasspath = plugins.resolve().toList()
         )
     }

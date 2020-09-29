@@ -48,6 +48,7 @@ abstract class AbstractDokkaTask(
     val offlineMode: Property<Boolean> = project.objects.safeProperty<Boolean>()
         .safeConvention(DokkaDefaults.offlineMode)
 
+    @Internal
     override val pluginsConfiguration: MutableList<DokkaConfiguration.PluginConfiguration> = mutableListOf()
 
     @Classpath

@@ -12,7 +12,7 @@ data class DokkaConfigurationImpl(
     override val offlineMode: Boolean = DokkaDefaults.offlineMode,
     override val sourceSets: List<DokkaSourceSetImpl> = emptyList(),
     override val pluginsClasspath: List<File> = emptyList(),
-    override val pluginsConfiguration: MutableList<PluginConfigurationImpl> = DokkaDefaults.pluginsConfiguration,
+    override val pluginsConfiguration: List<PluginConfigurationImpl> = DokkaDefaults.pluginsConfiguration,
     override val modules: List<DokkaModuleDescriptionImpl> = emptyList(),
     override val failOnWarning: Boolean = DokkaDefaults.failOnWarning
 ) : DokkaConfiguration
