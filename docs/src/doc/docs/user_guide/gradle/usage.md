@@ -182,6 +182,10 @@ dokkaHtml {
                 suppress.set(true)
             }
         }
+        // Configures a plugin separately from the global configuration
+        pluginConfiguration<PluginClass, ConfigurationClass>{
+            // values
+        }
     }
 }
 ```
@@ -249,6 +253,16 @@ To generate the documentation, use the appropriate `dokka${format}` Gradle task:
 ./gradlew dokkaHtml
 ```
 
+Some plugins can be configured separately using a plugin class and configuration class. For example:
+
+```kotlin
+pluginConfiguration<DokkaBase, DokkaBaseConfiguration> {
+    customAssets = listOf(file("<path to asset>"))
+    customStyleSheets = listOf(file("<path to custom stylesheet>"))
+}
+```
+
+Keep in mind, that this only works when using a buildscript since it is not possible to import plugin's class without it.
 ## Android
 
 !!! important
